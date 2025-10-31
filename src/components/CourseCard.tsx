@@ -25,6 +25,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, isSelected = f
     }
   };
 
+
   const getTagColor = (tag: string) => {
     const tagColors: { [key: string]: string } = {
       'Mathematics': 'bg-blue-100 text-blue-800',

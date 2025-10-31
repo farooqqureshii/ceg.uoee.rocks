@@ -29,7 +29,7 @@ const Logo: React.FC = () => {
           className="text-2xl font-black text-black cursor-pointer hover:text-blue-600 hover:scale-105 transition-all duration-200 active:scale-95" 
           onClick={() => window.location.href = '/'}
         >
-          uoee.rocks
+          ceg.uoee.rocks
         </h1>
         <div className="text-xs font-bold text-black">
           Built by <a href="https://farooqqureshi.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">Farooq</a>

@@ -13,7 +13,6 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedYear, setSelectedYear] = useState<number | 'all'>('all');
-  const [selectedSpecialization, setSelectedSpecialization] = useState<string>('all');
   const [currentView, setCurrentView] = useState<'flowchart' | 'browser'>('flowchart');
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -33,18 +32,34 @@ function App() {
     setModalCourse(null);
   };
 
-  const filteredCourses = courses.filter(course => {
+  const baseFiltered = courses.filter(course => {
     const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesYear = selectedYear === 'all' || course.year === selectedYear;
-    const matchesSpecialization = selectedSpecialization === 'all' || 
-                                 (course.specializations && course.specializations.includes(selectedSpecialization));
-    return matchesSearch && matchesYear && matchesSpecialization;
+    return matchesSearch && matchesYear;
+  });
+
+  // Deduplicate elective placeholders: show only one of each
+  const seen: { [key: string]: boolean } = {};
+  const filteredCourses = baseFiltered.filter(course => {
+    if (course.name === 'Science Elective') {
+      if (seen['Science Elective']) return false;
+      seen['Science Elective'] = true;
+    }
+    if (course.name === 'Complementary Elective') {
+      if (seen['Complementary Elective']) return false;
+      seen['Complementary Elective'] = true;
+    }
+    if (course.name === 'Technical Elective') {
+      if (seen['Technical Elective']) return false;
+      seen['Technical Elective'] = true;
+    }
+    return true;
   });
 
   const years = [1, 2, 3, 4];
-  const specializations = ['T', 'S', 'E', 'M', 'P'];
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -61,10 +76,10 @@ function App() {
               {/* Center: Contact Info - Hidden on mobile */}
               <div className="hidden md:flex flex-1 justify-center">
                 <div className="bg-white border-2 border-black shadow-brutal px-4 py-2">
-                  <div className="text-xs font-bold text-black text-center space-y-1">
-                    <div>Useful? Star it on <a href="https://github.com/farooqqureshii/uoee.rocks" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">GitHub :)</a></div>
+                    <div className="text-xs font-bold text-black text-center space-y-1">
+                    <div>Useful? Star it on <a href="https://github.com/farooqqureshii/ceg.uoee.rocks" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">GitHub :)</a></div>
                     <div>Spot a mistake? <a href="mailto:farooq.qureshi@outlook.com" className="text-blue-600 hover:text-blue-800 underline">Email me here</a></div>
-                    <div className="text-xs italic text-gray-600">Last Updated: August 15th</div>
+                    <div className="text-xs italic text-gray-600">Last Updated: October 31</div>
                   </div>
                 </div>
               </div>
@@ -126,10 +141,10 @@ function App() {
               <div className="md:hidden mt-4 bg-white border-2 border-black shadow-brutal p-4 space-y-3">
                 {/* Contact Info for Mobile */}
                 <div className="bg-gray-50 border border-black p-3">
-                  <div className="text-xs font-bold text-black space-y-1">
-                    <div>Useful? Star it on <a href="https://github.com/farooqqureshii/uoee.rocks" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">GitHub :)</a></div>
+                    <div className="text-xs font-bold text-black space-y-1">
+                    <div>Useful? Star it on <a href="https://github.com/farooqqureshii/ceg.uoee.rocks" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">GitHub :)</a></div>
                     <div>Spot a mistake? <a href="mailto:farooq.qureshi@outlook.com" className="text-blue-600 underline">Email me here</a></div>
-                    <div className="text-xs italic text-gray-600">Last Updated: August 15th</div>
+                    <div className="text-xs italic text-gray-600">Last Updated: October 31</div>
                   </div>
                 </div>
 
@@ -245,9 +260,9 @@ function App() {
             <div className="space-y-6 sm:space-y-8">
               {/* Search and Filters */}
               <div className="bg-white rounded-none border-4 border-black shadow-brutal-lg p-4 sm:p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Search */}
-                  <div className="relative sm:col-span-2 lg:col-span-1">
+                  <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black w-5 h-5" />
                     <input
                       type="text"
@@ -261,7 +276,7 @@ function App() {
                   {/* Year Filter */}
                   <select
                     value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value as number | 'all')}
+                    onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
                     className="px-4 py-3 border-2 border-black rounded-none focus:border-black focus:outline-none shadow-brutal font-bold"
                   >
                     <option value="all">All Years</option>
@@ -270,19 +285,7 @@ function App() {
                     ))}
                   </select>
 
-                  {/* Specialization Filter */}
-                  <select
-                    value={selectedSpecialization}
-                    onChange={(e) => setSelectedSpecialization(e.target.value)}
-                    className="px-4 py-3 border-2 border-black rounded-none focus:border-black focus:outline-none shadow-brutal font-bold"
-                  >
-                    <option value="all">All Specializations</option>
-                    <option value="T">Communications [T]</option>
-                    <option value="S">Systems [S]</option>
-                    <option value="E">Electronics [E]</option>
-                    <option value="M">Microwave & Photonic [M]</option>
-                    <option value="P">Power & Sustainable Energy [P]</option>
-                  </select>
+                  
 
                   {/* Results Count */}
                   <div className="flex items-center justify-center px-4 py-3 bg-white border-2 border-black rounded-none shadow-brutal">

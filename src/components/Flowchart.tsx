@@ -64,6 +64,7 @@ const Flowchart: React.FC<FlowchartProps> = ({ selectedCourse, onCourseClick, is
 
   const semesterData = getCoursesByYearAndSemester();
   const yearData = getCoursesByYear();
+  const unitsOverride: { [key: number]: number } = { 1: 30, 2: 36, 3: 33, 4: 30 };
 
   // Keyboard shortcut handler
   useEffect(() => {
@@ -121,6 +122,16 @@ const Flowchart: React.FC<FlowchartProps> = ({ selectedCourse, onCourseClick, is
     
     return 'bg-white border-2 border-black shadow-brutal';
   };
+
+  const getElectiveStyle = (course: Course) => {
+    const isPlaceholder = course.name === 'Science Elective' || course.name === 'Complementary Elective' || course.name === 'Technical Elective';
+    if (isPlaceholder) {
+      return 'border-dashed';
+    }
+    return '';
+  };
+
+  // no elective badges; titles only
 
   return (
     <div 
@@ -202,28 +213,21 @@ const Flowchart: React.FC<FlowchartProps> = ({ selectedCourse, onCourseClick, is
 
                 <div className="flex gap-12 min-w-max">
           {yearData.map((yearInfo) => {
-            const totalUnits = Object.values(yearInfo.semesters).flat().reduce((sum, course) => sum + course.units, 0);
+            const computedUnits = Object.values(yearInfo.semesters).flat().reduce((sum, course) => sum + course.units, 0);
+            const totalUnits = unitsOverride[yearInfo.year] ?? computedUnits;
             
             return (
               <div key={yearInfo.year} className="flex-shrink-0">
                 {/* Year Header */}
                 <div className="text-center mb-4">
                   <div 
-                    className="inline-flex items-center px-6 py-3 bg-white rounded-none border-4 border-black shadow-brutal cursor-pointer hover:shadow-brutal-lg transition-all"
-                    onClick={() => {
-                      if (yearInfo.year === 1) {
-                        setYear1ModalOpen(true);
-                      } else if (yearInfo.year === 2) {
-                        setComplementaryElectivesModalOpen(true);
-                      } else if (yearInfo.year === 3) {
-                        setYear3ModalOpen(true);
-                      } else if (yearInfo.year === 4) {
-                        setSpecializationModalOpen(true);
-                      }
-                    }}
+                    className={`inline-flex items-center px-6 py-3 bg-white rounded-none border-4 border-black shadow-brutal ${yearInfo.year === 3 ? 'cursor-pointer hover:shadow-brutal-lg' : ''} transition-all`}
+                    onClick={yearInfo.year === 3 ? () => setYear3ModalOpen(true) : undefined}
                   >
                     <h2 className="text-xl font-black text-black">Year {yearInfo.year} | {totalUnits} units</h2>
-                    <div className="ml-3 text-sm font-bold text-black">Click to read important info</div>
+                    {yearInfo.year === 3 && (
+                      <div className="ml-3 text-sm font-bold text-black">Click to read important info</div>
+                    )}
                   </div>
                 </div>
 
@@ -245,10 +249,15 @@ const Flowchart: React.FC<FlowchartProps> = ({ selectedCourse, onCourseClick, is
                         {courses.map((course) => {
                           const highlightClass = getCourseHighlightColor(course);
                           
+                          const isElectivePlaceholder = course.name === 'Science Elective' || course.name === 'Complementary Elective' || course.name === 'Technical Elective';
+                          const displayCode = isElectivePlaceholder ? 'Elective' : course.code;
+                          const displayName = isElectivePlaceholder
+                            ? (course.name === 'Science Elective' ? 'Science Elective' : course.name === 'Complementary Elective' ? 'Complementary Elective' : 'Technical Elective')
+                            : course.name;
                           return (
                             <div
                               key={course.id}
-                              className={`w-64 p-4 rounded-none border-2 cursor-pointer transition-all duration-200 hover:shadow-brutal-lg hover:scale-[1.02] ${highlightClass}`}
+                              className={`w-64 p-4 rounded-none border-2 cursor-pointer transition-all duration-200 hover:shadow-brutal-lg hover:scale-[1.02] ${highlightClass} ${getElectiveStyle(course)}`}
                               onMouseEnter={() => setHoveredCourse(course)}
                               onMouseLeave={() => setHoveredCourse(null)}
                               onClick={() => handleCourseClick(course)}
@@ -256,7 +265,7 @@ const Flowchart: React.FC<FlowchartProps> = ({ selectedCourse, onCourseClick, is
                               <div className="flex items-start justify-between mb-3">
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <div className="font-bold text-black text-lg">{course.code}</div>
+                                    <div className="font-bold text-black text-lg">{displayCode}</div>
                                     {course.specializations && course.specializations.length > 0 && (
                                       <div className="flex gap-1 flex-wrap">
                                         {course.specializations.map((spec, index) => (
@@ -272,7 +281,8 @@ const Flowchart: React.FC<FlowchartProps> = ({ selectedCourse, onCourseClick, is
                                   {course.units} UNITS
                                 </div>
                               </div>
-                              <div className="text-sm text-gray-800 leading-relaxed">{course.name}</div>
+                              <div className="text-sm text-gray-800 leading-relaxed">{displayName}</div>
+                              {/* no extra hint for electives */}
                             </div>
                           );
                         })}
@@ -385,16 +395,80 @@ const Flowchart: React.FC<FlowchartProps> = ({ selectedCourse, onCourseClick, is
       {/* Complementary Electives Modal */}
       {complementaryElectivesModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-black shadow-brutal-xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+          <div className="bg-white border-4 border-black shadow-brutal-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-green-50 to-blue-50 border-b-4 border-black p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-black text-black">Year 2 Important Info</h2>
-                  <p className="text-sm font-bold text-black">Complete two complementary electives in Year 2</p>
+                  <p className="text-sm font-bold text-black">Nothing too major here!</p>
                 </div>
                 <button
                   onClick={() => setComplementaryElectivesModalOpen(false)}
+                  className="p-2 bg-white border-2 border-black shadow-brutal hover:shadow-brutal-lg transition-all"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
+              <div className="bg-gray-50 border-2 border-black p-4 shadow-brutal">
+                <p className="text-sm font-bold text-black">Nothing too major here!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Year 1 Modal */}
+      {year1ModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-black shadow-brutal-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-50 to-green-50 border-b-4 border-black p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-black text-black">Year 1 Important Info</h2>
+                  <p className="text-sm font-bold text-black">Introduction to engineering fundamentals</p>
+                </div>
+                <button
+                  onClick={() => setYear1ModalOpen(false)}
+                  className="p-2 bg-white border-2 border-black shadow-brutal hover:shadow-brutal-lg transition-all"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
+              <div className="bg-gray-50 border-2 border-black p-4 shadow-brutal">
+                <p className="text-sm font-bold text-black">Nothing too major here!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Year 3 Modal */}
+      {year3ModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-black shadow-brutal-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-b-4 border-black p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-black text-black">Year 3 Important Info</h2>
+                  <p className="text-sm font-bold text-black">Diving deep into foundational EE courses</p>
+                </div>
+                <button
+                  onClick={() => setYear3ModalOpen(false)}
                   className="p-2 bg-white border-2 border-black shadow-brutal hover:shadow-brutal-lg transition-all"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -437,108 +511,15 @@ const Flowchart: React.FC<FlowchartProps> = ({ selectedCourse, onCourseClick, is
               <div className="bg-gray-50 border-2 border-black p-4 shadow-brutal mb-6">
                 <h4 className="font-black text-black mb-2">Important Notes:</h4>
                 <ul className="text-sm font-bold text-black space-y-1">
-                  <li>• You must complete TWO complementary electives in Year 2</li>
-                  <li>• Choose ONE of: HIS 2129 OR PHI 2394</li>
+                  <li>• You must complete TWO complementary electives</li>
+                  <li>• Choose ONE of: HIS 2129 OR PHI 2394 (as available)</li>
                   <li>• Choose ONE additional complementary elective from the full list</li>
                   <li>• Both courses shown above are 3 units each</li>
                   <li>• No prerequisites required for either course</li>
                 </ul>
               </div>
 
-              <div className="bg-blue-50 border-2 border-blue-300 p-4 shadow-brutal">
-                <h4 className="font-black text-black mb-2">More Complementary Elective Options:</h4>
-                <p className="text-sm font-bold text-black mb-3">
-                  Engineering students can choose from a wide variety of complementary electives across different disciplines.
-                </p>
-                <a 
-                  href="https://www.uottawa.ca/faculty-engineering/undergraduate-studies/courses-course-sequences/complementary-electives" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border-2 border-black shadow-brutal hover:shadow-brutal-lg transition-all text-sm font-black text-black"
-                >
-                  <span>View Full List</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Year 1 Modal */}
-      {year1ModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-black shadow-brutal-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-50 to-green-50 border-b-4 border-black p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-black text-black">Year 1 Important Info</h2>
-                  <p className="text-sm font-bold text-black">Introduction to engineering fundamentals</p>
-                </div>
-                <button
-                  onClick={() => setYear1ModalOpen(false)}
-                  className="p-2 bg-white border-2 border-black shadow-brutal hover:shadow-brutal-lg transition-all"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
-              <div className="bg-yellow-50 border-2 border-yellow-300 p-4 shadow-brutal mb-4">
-                <h4 className="font-black text-black mb-2">Course Substitution:</h4>
-                <p className="text-sm font-bold text-black">
-                  <strong>ITI 1120 (Introduction to Computing I)</strong> can replace <strong>GNG 1106</strong> if you want.
-                </p>
-              </div>
-
-              <div className="bg-blue-50 border-2 border-blue-300 p-4 shadow-brutal">
-                <h4 className="font-black text-black mb-2">Introduction to Engineering Fundamentals</h4>
-                <p className="text-sm font-bold text-black">
-                  Math, physics, chemistry, computing, and design basics.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Year 3 Modal */}
-      {year3ModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-black shadow-brutal-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-b-4 border-black p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-black text-black">Year 3 Important Info</h2>
-                  <p className="text-sm font-bold text-black">Diving deep into foundational EE courses</p>
-                </div>
-                <button
-                  onClick={() => setYear3ModalOpen(false)}
-                  className="p-2 bg-white border-2 border-black shadow-brutal hover:shadow-brutal-lg transition-all"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
-              <div className="bg-purple-50 border-2 border-purple-300 p-4 shadow-brutal">
-                <h4 className="font-black text-black mb-2">Not Much Important Info Here...</h4>
-                <p className="text-sm font-bold text-black">
-                  But you really get into some foundational EE courses!
-                </p>
-              </div>
+              
             </div>
           </div>
         </div>

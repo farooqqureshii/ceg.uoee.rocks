@@ -58,6 +58,67 @@ const CourseModal: React.FC<CourseModalProps> = ({ course, isOpen, onClose, onCo
             <p className="text-sm font-bold text-black leading-relaxed">{course.description}</p>
           </div>
 
+          {((course.category === 'Complementary') || course.name === 'Complementary Elective') && (
+            <div className="bg-blue-50 border-2 border-blue-300 p-4 shadow-brutal mb-6">
+              <h3 className="text-lg font-black text-black mb-2">Complementary Electives</h3>
+              <p className="text-sm font-bold text-black mb-3">See the official list of approved complementary electives.</p>
+              <a
+                href="https://www.uottawa.ca/faculty-engineering/student-hub/courses-course-sequences/complementary-electives"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-2 bg-white border-2 border-black shadow-brutal hover:shadow-brutal-lg transition-all text-sm font-black text-black"
+              >
+                <span>Open Complementary Electives Page</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          )}
+
+          {((course.category === 'Technical') || course.name === 'Technical Elective') && (
+            <div className="bg-purple-50 border-2 border-purple-300 p-4 shadow-brutal mb-6">
+              <h3 className="text-lg font-black text-black mb-2">Technical Electives (2025-2026)</h3>
+              <ul className="text-sm font-bold text-black space-y-1 mb-3">
+                <li>• CEG 4112 — Topics in Computer Engineering II (3 units)</li>
+                <li>• CEG 4140 — Digital Control Systems (3 units)</li>
+                <li>• CEG 4158 — Computer Control in Robotics (3 units)</li>
+                <li>• CEG 4186 — Wireless Networks (3 units)</li>
+                <li>• CEG 4187 — Optical Networks (3 units)</li>
+                <li>• CEG 4188 — Higher Layer Network Protocols (3 units)</li>
+                <li>• CEG 4190 — Computer Network Design (3 units)</li>
+                <li>• CEG 4195 — Applied Machine Learning for Computer Engineering (3 units)</li>
+                <li>• CEG 4198 — Distributed Systems Design (3 units)</li>
+                <li>• CEG 4316 — Digital Image Processing (3 units)</li>
+                <li>• CEG 4396 — Computer Network Management (3 units)</li>
+                <li>• CEG 4399 — Design of Secure Computer Systems (3 units)</li>
+                <li>• CSI 2120 — Programming Paradigms (3 units)</li>
+                <li>• CSI 2132 — Databases I (3 units)</li>
+                <li>• CSI 2372 — Advanced Programming Concepts With C++ (3 units)</li>
+                <li>• CSI 3120 — Programming Language Concepts (3 units)</li>
+                <li>• CSI 3140 — WWW Structures, Techniques and Standards (3 units)</li>
+                <li>• CSI 4106 — Introduction to Artificial Intelligence (3 units)</li>
+                <li>• ELG 2137 — Circuit Theory II (3 units)</li>
+                <li>• ELG 3136 — Electronics II (3 units)</li>
+                <li>• ELG 4137 — Principles and Applications of VLSI Design (3 units)</li>
+                <li>• ELG 4177 — Digital Signal Processing (3 units)</li>
+                <li>• SEG 3102 — Software Design and Architecture (3 units)</li>
+                <li>• SEG 3125 — Analysis and Design of User Interfaces (3 units)</li>
+              </ul>
+              <a
+                href="http://catalogue.uottawa.ca/en/undergrad/basc-computer-engineering/index.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-2 bg-white border-2 border-black shadow-brutal hover:shadow-brutal-lg transition-all text-sm font-black text-black"
+              >
+                <span>Open uOttawa CEG Catalogue</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Prerequisites */}
             <div className="bg-yellow-50 border-2 border-yellow-300 p-4 shadow-brutal">
